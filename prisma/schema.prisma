@@ -1,0 +1,149 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  password      String?
+  emailVerified DateTime?
+  image         String?
+  role          String    @default("USER") // USER, ADMIN
+  orders             Order[]
+  reviews            Review[]
+  ringConfigurations RingConfiguration[]
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  imageUrl    String?
+  products    Product[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String
+  price       Float
+  images      String // Stores JSON array of URLs for SQLite compatibility
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
+  diamondId   String?  @unique
+  diamond     Diamond? @relation(fields: [diamondId], references: [id])
+  metalType   String   // e.g., "18K White Gold"
+  stockCount  Int      @default(1)
+  isFeatured  Boolean  @default(false)
+  orders      OrderItem[]
+  reviews     Review[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Diamond {
+  id            String   @id @default(cuid())
+  shape         String   // Round, Oval, Princess, Emerald
+  caratWeight   Float
+  cut           String   // Excellent, Very Good, Good
+  clarity       String   // FL, IF, VVS1, VVS2, VS1, VS2
+  color         String   // D, E, F, G, H, I, J
+  certification String   // GIA, IGI
+  price         Float
+  stockStatus   String   @default("AVAILABLE") // AVAILABLE, SOLD
+  imageUrl      String?
+  modelUrl      String?
+  product             Product?            // One-to-one relation if a product is a specific diamond ring
+  ringConfigurations  RingConfiguration[]
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  @@index([price])
+  @@index([caratWeight])
+  @@index([shape])
+  @@index([color])
+  @@index([clarity])
+}
+
+model Order {
+  id            String      @id @default(cuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id])
+  items         OrderItem[]
+  subtotal      Float?      @default(0) // Made optional to prevent throwing errors on older records during migration
+  gstAmount     Float?      @default(0)
+  gstType       String?     // "CGST_SGST" or "IGST"
+  shippingCost  Float?      @default(0)
+  totalAmount   Float
+  gstNumber     String?     
+  billingState  String?     // e.g., "Gujarat"
+  shippingState String?     
+  status        String      @default("PENDING") // PENDING, PAID, SHIPPED, DELIVERED
+  razorpayId    String?     @unique
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model OrderItem {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id])
+  productId           String?     // Make optional because an OrderItem could be JUST a custom ring
+  product             Product?    @relation(fields: [productId], references: [id])
+  ringConfigurationId String?
+  ringConfiguration   RingConfiguration? @relation(fields: [ringConfigurationId], references: [id])
+  quantity            Int         @default(1)
+  price               Float
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  rating    Int      // 1 to 5
+  comment   String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Setting {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  price       Float
+  imageUrl    String?
+  modelUrl    String?
+  category    String   // e.g., "Solitaire", "Halo", "Vintage", "Three-Stone"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  configurations RingConfiguration[]
+}
+
+model RingConfiguration {
+  id          String   @id @default(cuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
+  settingId   String
+  setting     Setting  @relation(fields: [settingId], references: [id])
+  diamondId   String
+  diamond     Diamond  @relation(fields: [diamondId], references: [id])
+  metalType   String
+  totalPrice  Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  orderItems  OrderItem[]
+}

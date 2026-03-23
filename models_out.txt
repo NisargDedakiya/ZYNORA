@@ -1,0 +1,4 @@
+=== SETTINGS ===
+  name: Demo, modelUrl: /models/settings/my_3d_ring-1773663691389-291866077.obj
+
+=== DIAMONDS (first 5) ===

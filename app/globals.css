@@ -1,26 +1,176 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
+@theme {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-primary: #0A0A0D;
+  --color-secondary: #111114;
+  --color-luxury-black: #0A0A0D;
+  --color-soft-cream: #FFFFFF;
+  --color-gold: #D4AF37;
+  --color-gold-hover: #b38e3a;
+  --color-gold-light: rgba(212, 175, 55, 0.1);
+  --color-rosegold: #E0BFB8;
+  --color-silver: #D8D8D8;
+  --color-text-dark: #0A0A0D;
+  --color-text-light: #FFFFFF;
+  --color-text-muted: #CFCFCF;
+
+  --font-heading: var(--font-playfair), serif;
+  --font-body: var(--font-lato), sans-serif;
+
+  --ease-smooth: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@layer base {
+
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
+  }
+}
+
+:root {
+  --background: #FFFFFF;
+  --foreground: #111111;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #FFFFFF;
+    --foreground: #111111;
+  }
+}
+
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
   }
 }
 
 body {
-  background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--background);
+  font-family: var(--font-body), sans-serif;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading), serif;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+}
+
+/* Base custom utilities */
+.container-custom {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 5%;
+}
+
+@layer utilities {
+  .bg-luxury-gradient {
+    background: linear-gradient(135deg, #F8F5F0 0%, #FFFFFF 100%);
+  }
+
+  .bg-gold-gradient {
+    background: linear-gradient(135deg, #F8F5F0, #FFFFFF, #E0DFDE);
+  }
+
+  .text-gold-gradient {
+    background: linear-gradient(135deg, #111111, #333333, #000000);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .hover-luxury-glow {
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+
+  .hover-luxury-glow:hover {
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+  }
+
+  .card-shadow {
+    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.08);
+    /* Soft shadows to cards */
+  }
+
+  .dark .card-shadow {
+    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.4);
+  }
+
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}
+
+.fade-in-section {
+  animation: fadeIn 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Scrollbar customization for luxury feel */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F8F5F0;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #C6A96B;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #A68D59;
+}
+
+/* Custom Animations for New Homepage Sections */
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-15px); }
+  100% { transform: translateY(0px); }
+}
+
+@keyframes sparkle {
+  0%, 100% { opacity: 0.8; transform: scale(1); filter: brightness(1) drop-shadow(0 0 0px rgba(255,255,255,0)); }
+  50% { opacity: 1; transform: scale(1.02); filter: brightness(1.1) drop-shadow(0 0 20px rgba(255,255,255,0.4)); }
+}
+
+.animate-float-slow {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-sparkle-slow {
+  animation: sparkle 4s ease-in-out infinite;
 }
