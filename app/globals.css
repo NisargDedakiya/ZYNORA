@@ -174,3 +174,134 @@ h6 {
 .animate-sparkle-slow {
   animation: sparkle 4s ease-in-out infinite;
 }
+
+/* Progress Stepper for Demo Flow */
+.demo-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin-bottom: 2rem;
+}
+
+.demo-stepper-step {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.demo-stepper-dot {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.demo-stepper-line {
+  width: 4rem;
+  height: 1px;
+  margin: 0 0.5rem;
+  transition: background-color 0.5s ease;
+}
+
+@media (min-width: 640px) {
+  .demo-stepper-line {
+    width: 6rem;
+  }
+}
+
+/* Confetti particles for success */
+@keyframes confetti-fall {
+  0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+
+@keyframes confetti-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(10px); }
+  75% { transform: translateX(-10px); }
+}
+
+.confetti-piece {
+  position: fixed;
+  top: -10px;
+  width: 8px;
+  height: 8px;
+  opacity: 0;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.confetti-piece.active {
+  animation: confetti-fall 3s ease-in forwards, confetti-shake 0.5s ease-in-out infinite;
+}
+
+/* Pulse glow for premium buttons */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(17, 17, 17, 0.2); }
+  50% { box-shadow: 0 0 20px 4px rgba(17, 17, 17, 0.15); }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Checkmark draw animation */
+@keyframes check-draw {
+  0% { stroke-dashoffset: 24; }
+  100% { stroke-dashoffset: 0; }
+}
+
+.animate-check-draw {
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+  animation: check-draw 0.5s ease-out 0.3s forwards;
+}
+
+/* Shimmer for loading states */
+@keyframes shimmer-slide {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.animate-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.animate-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+  animation: shimmer-slide 1.5s ease-in-out infinite;
+}
+
+/* Success page glow ring */
+@keyframes glow-ring {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.3); }
+  50% { box-shadow: 0 0 30px 10px rgba(34, 197, 94, 0.15); }
+}
+
+.animate-glow-ring {
+  animation: glow-ring 2s ease-in-out infinite;
+}
+
+/* Order ID highlight shimmer */
+@keyframes order-id-shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.order-id-highlight {
+  background: linear-gradient(90deg, #111 30%, #D4AF37 50%, #111 70%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: order-id-shimmer 3s ease-in-out infinite;
+}

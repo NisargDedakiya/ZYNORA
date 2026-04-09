@@ -6,6 +6,8 @@ import { toast } from 'sonner';
 import Image from "next/image";
 import { useCustomizerStore } from "@/lib/customizer-store";
 import { useCart } from "@/components/CartProvider";
+import { useDemoOrderStore } from "@/lib/demo-order-store";
+import { ShoppingBag } from "lucide-react";
 
 const formatPrice = (value: number) => {
     return new Intl.NumberFormat('en-IN', {
@@ -19,8 +21,10 @@ export default function Step4ReviewPage() {
     const router = useRouter();
     const { config, getTotalPrice, resetConfig } = useCustomizerStore();
     const { addToCart } = useCart();
+    const { setRing } = useDemoOrderStore();
 
     const [isAdded, setIsAdded] = useState(false);
+    const [isPurchasing, setIsPurchasing] = useState(false);
 
     useEffect(() => {
         if (!config.setting || !config.diamond) {
@@ -74,6 +78,53 @@ export default function Step4ReviewPage() {
             console.error(error);
             setIsAdded(false);
             toast.error("Failed to add to cart. Please try again.");
+        }
+    };
+
+    const handleProceedToPurchase = async () => {
+        setIsPurchasing(true);
+        try {
+            // Save ring configuration to DB first
+            const res = await fetch('/api/customizer', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    settingId: setting.id,
+                    diamondId: diamond.id,
+                    metalType: metalType,
+                    totalPrice: totalPrice,
+                })
+            });
+
+            if (!res.ok) throw new Error("Failed to save configuration");
+            const data = await res.json();
+
+            // Store ring details in demo order store
+            setRing({
+                settingId: setting.id,
+                settingName: setting.name,
+                settingPrice: setting.price,
+                settingImage: setting.imageUrl || null,
+                settingCategory: setting.category,
+                diamondId: diamond.id,
+                diamondShape: diamond.shape,
+                diamondCarat: diamond.caratWeight,
+                diamondCut: diamond.cut,
+                diamondClarity: diamond.clarity,
+                diamondColor: diamond.color,
+                diamondCertification: diamond.certification,
+                diamondPrice: diamond.price,
+                metalType: metalType,
+                metalPriceAdjustment: config.metalPriceAdjustment,
+                totalPrice: totalPrice,
+                ringConfigurationId: data.id,
+            });
+
+            router.push("/demo-checkout");
+        } catch (error) {
+            console.error(error);
+            setIsPurchasing(false);
+            toast.error("Something went wrong. Please try again.");
         }
     };
 
@@ -136,30 +187,52 @@ export default function Step4ReviewPage() {
                 </div>
 
                 {/* Actions */}
-                <div className="flex flex-col md:flex-row justify-between items-center gap-6 pt-8 border-t border-emerald-accent/20">
+                <div className="flex flex-col md:flex-row justify-between items-center gap-4 pt-8 border-t border-emerald-accent/20">
                     <button
                         onClick={() => router.push("/customizer/step-3-metal")}
                         className="text-emerald-text/40 hover:text-emerald-accent text-xs font-bold uppercase tracking-widest transition-colors w-full md:w-auto text-left"
                     >
                         Back to Metal
                     </button>
-                    <button
-                        onClick={handleAddToCart}
-                        disabled={isAdded}
-                        className={`w-full md:w-auto px-10 py-4 rounded-none text-xs font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-3 ${isAdded ? 'bg-emerald-text border border-emerald-text text-emerald-bg' : 'bg-emerald-accent text-emerald-bg hover:bg-emerald-accent/80 hover:shadow-[0_0_20px_rgba(47,143,131,0.3)] hover:-translate-y-1'
-                            }`}
-                    >
-                        {isAdded ? (
-                            <>
-                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                                </svg>
-                                Added to Cart
-                            </>
-                        ) : (
-                            'Add to Cart'
-                        )}
-                    </button>
+                    <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                        <button
+                            onClick={handleAddToCart}
+                            disabled={isAdded || isPurchasing}
+                            className={`w-full sm:w-auto px-8 py-4 rounded-none text-xs font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-3 border border-emerald-accent/40 ${isAdded ? 'bg-emerald-text border-emerald-text text-emerald-bg' : 'bg-transparent text-emerald-accent hover:bg-emerald-accent/10'
+                                }`}
+                        >
+                            {isAdded ? (
+                                <>
+                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    Added to Cart
+                                </>
+                            ) : (
+                                'Add to Cart'
+                            )}
+                        </button>
+                        <button
+                            onClick={handleProceedToPurchase}
+                            disabled={isAdded || isPurchasing}
+                            className="w-full sm:w-auto px-10 py-4 rounded-none text-xs font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-3 bg-emerald-accent text-emerald-bg hover:bg-emerald-accent/80 hover:shadow-[0_0_20px_rgba(47,143,131,0.3)] hover:-translate-y-1"
+                        >
+                            {isPurchasing ? (
+                                <span className="flex items-center gap-2">
+                                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                                    </svg>
+                                    Processing...
+                                </span>
+                            ) : (
+                                <>
+                                    <ShoppingBag size={16} />
+                                    Proceed to Purchase
+                                </>
+                            )}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

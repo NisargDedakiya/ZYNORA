@@ -203,20 +203,28 @@ function CheckoutButton({ total, billingState, formData, gstNumber, gstAmount, g
 
             // Build the rich order payload for the backend
             const orderPayload = {
+                orderType: "CART",
                 items,
                 subtotal,
                 totalAmount: total,
                 gstAmount,
                 gstType,
                 billingState,
-                shippingState: billingState, // Mirroring for now
+                shippingState: billingState,
                 gstNumber: gstNumber || null,
-                customer: formData
+                customer: {
+                    ...formData,
+                    name: formData.firstName ? `${formData.firstName} ${formData.lastName}` : "Valued Customer",
+                    address: formData.address,
+                    city: formData.city,
+                    state: billingState,
+                    pincode: formData.pincode,
+                }
             };
 
             const options = {
-                key: "rzp_test_placeholder", // Enter the Key ID generated from the Dashboard
-                amount: total * 100, // Amount is in currency subunits. Default currency is INR.
+                key: "rzp_test_placeholder",
+                amount: total * 100,
                 currency: "INR",
                 name: "ZYNORA LUXE",
                 description: "Luxury Jewelry Purchase",
@@ -224,8 +232,7 @@ function CheckoutButton({ total, billingState, formData, gstNumber, gstAmount, g
                 handler: async function (response: any) {
                     console.log("Payment Successful", response.razorpay_payment_id);
                     try {
-                        // Persist to DB using secure checkoput endpoint returning verification
-                        const res = await fetch('/api/verify-payment', {
+                        const res = await fetch('/api/place-order', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
@@ -235,9 +242,9 @@ function CheckoutButton({ total, billingState, formData, gstNumber, gstAmount, g
                         });
                         const data = await res.json();
                         if (data.success) {
-                            console.log("Order saved to DB and invoice generated");
+                            console.log("Order saved to DB");
                             clearCart();
-                            window.location.href = "/order-success";
+                            window.location.href = `/order-success?orderId=${data.orderId}`;
                         } else {
                             alert("Payment received, but error saving order: " + data.message);
                         }

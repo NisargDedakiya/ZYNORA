@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { Search, User, ShoppingCart, LogOut, LayoutDashboard, Settings, ShoppingBag } from "lucide-react";
+import { Search, User, ShoppingCart, LogOut, LayoutDashboard, Settings, ShoppingBag, Menu, X as XIcon } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { useCart } from "./CartProvider";
@@ -11,9 +11,12 @@ import { useSession, signOut } from "next-auth/react";
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "framer-motion";
 import { toast } from "sonner";
 
+const NAV_ITEMS = ["Shop", "Customize", "Diamonds", "About"];
+
 export function Header() {
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
     const [isHidden, setIsHidden] = useState(false);
     const lastYRef = useRef(0);
@@ -32,6 +35,21 @@ export function Header() {
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
+
+    // Close mobile menu on route change
+    useEffect(() => {
+        setIsMobileMenuOpen(false);
+    }, [pathname]);
+
+    // Lock body scroll when mobile menu is open
+    useEffect(() => {
+        if (isMobileMenuOpen) {
+            document.body.style.overflow = "hidden";
+        } else {
+            document.body.style.overflow = "";
+        }
+        return () => { document.body.style.overflow = ""; };
+    }, [isMobileMenuOpen]);
 
     const handleLogout = async () => {
         setIsDropdownOpen(false);
@@ -61,19 +79,19 @@ export function Header() {
                     visible: { y: 0 },
                     hidden: { y: "-100%" }
                 }}
-                animate={isHidden ? "hidden" : "visible"}
+                animate={isHidden && !isMobileMenuOpen ? "hidden" : "visible"}
                 transition={{ duration: 0.4, ease: "easeInOut" }}
                 className={`fixed top-0 left-0 w-full z-40 transition-colors duration-500 py-4 ${headerBgClass}`}
             >
                 <div className="container-custom flex justify-between items-center">
-                    {/* Left: Navigation */}
+                    {/* Left: Desktop Navigation */}
                     <nav className="flex-1 hidden md:flex items-center">
                         <ul className="flex gap-8">
-                            {["Shop", "Customize", "About"].map((item) => {
+                            {NAV_ITEMS.map((item) => {
                                 const targetPath = item === "Home" ? "/" : `/${item.toLowerCase()}`;
                                 const isActive = item === "Customize"
                                     ? pathname.startsWith("/customizer") || pathname === "/customize"
-                                    : pathname === targetPath;
+                                    : pathname === targetPath || pathname.startsWith(targetPath + "/");
 
                                 return (
                                     <li key={item}>
@@ -89,6 +107,17 @@ export function Header() {
                         </ul>
                     </nav>
 
+                    {/* Mobile: Hamburger */}
+                    <div className="flex-1 md:hidden">
+                        <button
+                            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                            className="text-white/80 hover:text-white transition-colors p-1"
+                            aria-label="Toggle menu"
+                        >
+                            {isMobileMenuOpen ? <XIcon size={22} strokeWidth={1.5} /> : <Menu size={22} strokeWidth={1.5} />}
+                        </button>
+                    </div>
+
                     {/* Center: Logo */}
                     <div className="flex-1 flex justify-center items-center">
                         <Link href="/" className="logo text-white text-2xl tracking-wide flex items-center transition-transform hover:scale-105 duration-500">
@@ -98,7 +127,7 @@ export function Header() {
 
                     {/* Right: Actions */}
                     <div className="flex-1 flex justify-end gap-6 items-center">
-                        <button aria-label="Search" className="text-white/70 hover:text-white transition-colors duration-300">
+                        <button aria-label="Search" className="text-white/70 hover:text-white transition-colors duration-300 hidden sm:block">
                             <Search size={18} strokeWidth={1.5} />
                         </button>
 
@@ -185,6 +214,94 @@ export function Header() {
                     </div>
                 </div>
             </motion.header>
+
+            {/* Mobile Menu Overlay */}
+            <AnimatePresence>
+                {isMobileMenuOpen && (
+                    <>
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.3 }}
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-45"
+                            style={{ zIndex: 45 }}
+                        />
+                        <motion.nav
+                            initial={{ x: "-100%" }}
+                            animate={{ x: 0 }}
+                            exit={{ x: "-100%" }}
+                            transition={{ type: "spring", damping: 30, stiffness: 300 }}
+                            className="fixed top-0 left-0 bottom-0 w-[280px] bg-[#0A0A0D] z-50 flex flex-col shadow-2xl"
+                        >
+                            {/* Mobile Menu Header */}
+                            <div className="flex items-center justify-between p-6 border-b border-white/10">
+                                <Image src="/assets/logo.png" alt="ZYNORA LUXE" width={120} height={40} className="object-contain brightness-0 invert" />
+                                <button onClick={() => setIsMobileMenuOpen(false)} className="text-white/60 hover:text-white transition-colors p-1">
+                                    <XIcon size={20} />
+                                </button>
+                            </div>
+
+                            {/* Mobile Nav Links */}
+                            <div className="flex-1 flex flex-col py-6">
+                                {NAV_ITEMS.map((item, i) => {
+                                    const targetPath = item === "Home" ? "/" : `/${item.toLowerCase()}`;
+                                    const isActive = item === "Customize"
+                                        ? pathname.startsWith("/customizer") || pathname === "/customize"
+                                        : pathname === targetPath;
+
+                                    return (
+                                        <motion.div
+                                            key={item}
+                                            initial={{ opacity: 0, x: -20 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ delay: 0.1 + i * 0.05 }}
+                                        >
+                                            <Link
+                                                href={targetPath}
+                                                className={`block px-8 py-4 text-sm uppercase tracking-[0.2em] font-medium transition-colors ${
+                                                    isActive
+                                                        ? "text-white bg-white/5 border-l-2 border-white"
+                                                        : "text-white/60 hover:text-white hover:bg-white/5 border-l-2 border-transparent"
+                                                }`}
+                                            >
+                                                {item}
+                                            </Link>
+                                        </motion.div>
+                                    );
+                                })}
+                            </div>
+
+                            {/* Mobile Menu Footer */}
+                            <div className="p-6 border-t border-white/10 space-y-3">
+                                {session?.user ? (
+                                    <>
+                                        <div className="flex items-center gap-3 mb-4">
+                                            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white text-sm font-bold">
+                                                {session.user.name?.[0]?.toUpperCase() || 'U'}
+                                            </div>
+                                            <div>
+                                                <p className="text-white text-sm font-medium truncate">{session.user.name}</p>
+                                                <p className="text-white/40 text-xs truncate">{session.user.email}</p>
+                                            </div>
+                                        </div>
+                                        {session.user.role === "ADMIN" && (
+                                            <Link href="/admin" className="block text-center w-full py-2.5 text-xs uppercase tracking-widest font-bold border border-white/20 text-white/70 hover:text-white hover:border-white/40 transition-colors">
+                                                Admin Dashboard
+                                            </Link>
+                                        )}
+                                    </>
+                                ) : (
+                                    <Link href="/login" className="block text-center w-full py-2.5 text-xs uppercase tracking-widest font-bold border border-white/20 text-white/70 hover:text-white hover:border-white/40 transition-colors">
+                                        Sign In
+                                    </Link>
+                                )}
+                            </div>
+                        </motion.nav>
+                    </>
+                )}
+            </AnimatePresence>
 
             <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
         </>

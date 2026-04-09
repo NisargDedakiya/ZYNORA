@@ -78,22 +78,28 @@ model Diamond {
 }
 
 model Order {
-  id            String      @id @default(cuid())
-  userId        String
-  user          User        @relation(fields: [userId], references: [id])
-  items         OrderItem[]
-  subtotal      Float?      @default(0) // Made optional to prevent throwing errors on older records during migration
-  gstAmount     Float?      @default(0)
-  gstType       String?     // "CGST_SGST" or "IGST"
-  shippingCost  Float?      @default(0)
-  totalAmount   Float
-  gstNumber     String?     
-  billingState  String?     // e.g., "Gujarat"
-  shippingState String?     
-  status        String      @default("PENDING") // PENDING, PAID, SHIPPED, DELIVERED
-  razorpayId    String?     @unique
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  id              String      @id @default(cuid())
+  displayOrderId  String?     @unique // e.g. ZYNORA-ORD-A1B2
+  orderType       String?     @default("CART") // CART or CUSTOM_RING
+  userId          String
+  user            User        @relation(fields: [userId], references: [id])
+  items           OrderItem[]
+  subtotal        Float?      @default(0)
+  gstAmount       Float?      @default(0)
+  gstType         String?     // "CGST_SGST" or "IGST"
+  shippingCost    Float?      @default(0)
+  totalAmount     Float
+  gstNumber       String?
+  billingState    String?
+  shippingState   String?
+  customerName    String?
+  customerEmail   String?
+  customerPhone   String?
+  customerAddress String?
+  status          String      @default("PENDING") // PENDING, PAID, SHIPPED, DELIVERED, CONFIRMED
+  razorpayId      String?     @unique
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
 }
 
 model OrderItem {

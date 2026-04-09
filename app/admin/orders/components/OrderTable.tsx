@@ -68,6 +68,7 @@ export function OrderTable({ initialOrders }: { initialOrders: any[] }) {
                         <tr className="bg-gray-50 border-b border-gray-200 text-[10px] uppercase tracking-widest text-gray-400">
                             <th className="p-5 font-bold">Order ID</th>
                             <th className="p-5 font-bold">Customer</th>
+                            <th className="p-5 font-bold">Type</th>
                             <th className="p-5 font-bold">Date</th>
                             <th className="p-5 font-bold">Total</th>
                             <th className="p-5 font-bold">Status</th>
@@ -76,13 +77,22 @@ export function OrderTable({ initialOrders }: { initialOrders: any[] }) {
                     </thead>
                     <tbody className="divide-y divide-white/5">
                         {orders.length === 0 ? (
-                            <tr><td colSpan={6} className="p-10 text-center text-gray-400 text-xs uppercase tracking-widest font-bold">No orders found.</td></tr>
+                            <tr><td colSpan={7} className="p-10 text-center text-gray-400 text-xs uppercase tracking-widest font-bold">No orders found.</td></tr>
                         ) : orders.map((order) => (
                             <tr key={order.id} className="hover:bg-gray-100 transition-colors">
-                                <td className="p-5 font-mono text-xs text-gray-500 tracking-wider ">{order.id.slice(-8).toUpperCase()}</td>
+                                <td className="p-5 font-mono text-xs text-gray-500 tracking-wider">{order.displayOrderId || order.id.slice(-8).toUpperCase()}</td>
                                 <td className="p-5">
                                     <p className="font-bold text-[#111111] tracking-wide">{order.user?.name || "Guest"}</p>
                                     <p className="text-[11px] text-gray-400 mt-1 uppercase tracking-widest">{order.user?.email}</p>
+                                </td>
+                                <td className="p-5">
+                                    <span className={`inline-flex items-center gap-1.5 text-[9px] font-bold px-2.5 py-1 uppercase tracking-widest border ${
+                                        order.orderType === 'CUSTOM_RING'
+                                            ? 'bg-purple-50 text-purple-700 border-purple-100'
+                                            : 'bg-blue-50 text-blue-700 border-blue-100'
+                                    }`}>
+                                        {order.orderType === 'CUSTOM_RING' ? 'Custom Ring' : 'Cart'}
+                                    </span>
                                 </td>
                                 <td className="p-5 text-sm text-gray-700">
                                     {format(new Date(order.createdAt), "MMM d, yyyy")}
